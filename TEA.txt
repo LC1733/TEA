@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+<title>TEA · Atlas Clínico v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+--bg: #0D0D1A; --surface: #13132A; --surface2: #1A1A35; --border: #2A2A50;
+--muted: #6B6B9A; --light: #9898C8; --text: #E8E8F8; --text2: #B0B0D8;
+--active: #2ECC71; --active-glow: rgba(46,204,113,0.3);
+}
+body { font-family: 'Crimson Pro', serif; background: var(--bg); color: var(--text); height: 100vh; max-width: 520px; margin: 0 auto; overflow: hidden; display: flex; flex-direction: column; }
+#header { background: linear-gradient(180deg, #0A0A18 0%, #13132A 100%); padding: 16px 16px 0; position: relative; z-index: 100; border-bottom: 3px solid var(--active); transition: border-color 0.4s; flex-shrink: 0; }
+
+@media (min-width: 768px) {
+  body { max-width: 100%; flex-direction: row; height: 100vh; }
+  #header { width: 360px; min-width: 320px; max-width: 380px; height: 100vh; overflow-y: auto; border-bottom: none; border-right: 3px solid var(--active); flex-shrink: 0; display: flex; flex-direction: column; padding-bottom: 20px; -webkit-overflow-scrolling: touch; }
+  #content { flex: 1; overflow-y: auto; height: 100vh; padding: 24px 32px 90px; -webkit-overflow-scrolling: touch; max-width: 900px; }
+  #bottom-nav { position: fixed; bottom: 0; left: 360px; right: 0; border-top: 3px solid var(--active); border-left: none; }
+  #dropdown { max-width: 380px; }
+  .card { padding: 22px; margin-bottom: 16px; }
+  .card p { font-size: 15px; line-height: 1.9; }
+  .card-label { font-size: 10px; letter-spacing: 5px; }
+  .cause-item { padding: 14px 18px; margin-bottom: 10px; }
+  .cause-title { font-size: 14px; }
+  .cause-desc { font-size: 13.5px; line-height: 1.7; }
+  .cause-detail { font-size: 12.5px; }
+  .brain-item { padding: 18px; margin-bottom: 12px; }
+  .brain-name { font-size: 15px; }
+  .brain-role { font-size: 11px; }
+  .brain-desc { font-size: 14px; }
+  .brain-finding { font-size: 13px; line-height: 1.7; padding: 10px 14px; }
+  .neuro-grid { grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .neuro-item { padding: 14px; }
+  .neuro-name { font-size: 13px; }
+  .neuro-role { font-size: 12px; }
+  .treat-card { padding: 20px; margin-bottom: 14px; }
+  .treat-name { font-size: 17px; }
+  .treat-mech { font-size: 14px; }
+  .treat-notes { font-size: 13px; padding: 12px 16px; }
+  .treat-warning { font-size: 13px; padding: 10px 16px; }
+  .sym-item { padding: 12px 16px; margin-bottom: 8px; }
+  .sym-text { font-size: 14px; line-height: 1.6; }
+  .sym-section-title { font-size: 12px; padding: 8px 14px; }
+  .compare-table th { font-size: 12px; padding: 12px 14px; }
+  .compare-table td { font-size: 14px; padding: 12px 14px; }
+  .section-heading { font-size: 13px; }
+  .nav-btn { padding: 12px 8px 14px; }
+  .nav-icon { font-size: 20px; }
+  .nav-label { font-size: 9px; letter-spacing: 2px; }
+  .phase-chip { padding: 6px 16px; font-size: 12px; }
+  .footer-bar span { font-size: 10px; }
+  .criteria-item { padding: 10px 0; }
+  .criteria-text { font-size: 14px; }
+}
+
+@media (min-width: 1200px) {
+  #header { width: 400px; max-width: 420px; }
+  #bottom-nav { left: 400px; }
+  #dropdown { max-width: 420px; }
+  #content { padding: 28px 40px 90px; }
+}
+
+.header-eyebrow { font-size: 9px; letter-spacing: 4px; color: var(--muted); font-family: monospace; margin-bottom: 4px; }
+.header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.header-title { font-family: 'Cinzel', serif; font-size: 17px; color: var(--text); font-weight: 700; letter-spacing: 1px; }
+.header-badge { font-size: 10px; color: var(--muted); font-family: monospace; border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; }
+#selector-btn { background: var(--surface2); border: 2px solid var(--active); border-radius: 10px; padding: 11px 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; width: 100%; transition: border-color 0.4s, box-shadow 0.3s; box-shadow: 0 0 20px var(--active-glow); }
+.sel-left { display: flex; align-items: center; gap: 12px; }
+.sel-icon { font-size: 24px; }
+.sel-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.sel-sub { font-size: 10px; color: var(--muted); font-family: monospace; margin-top: 2px; }
+.sel-arrow { color: var(--muted); font-size: 13px; }
+#dropdown { display: none; background: #0A0A18; border-top: 1px solid var(--border); position: absolute; left: 0; right: 0; z-index: 200; box-shadow: 0 20px 40px rgba(0,0,0,0.6); max-width: 520px; margin: 0 auto; }
+#dropdown.open { display: block; }
+.dd-item { padding: 14px 16px; display: flex; align-items: center; gap: 14px; cursor: pointer; border-left: 4px solid transparent; transition: background 0.2s; }
+.dd-item:active { background: var(--surface2); }
+.dd-item-name { font-size: 14px; color: var(--text); font-weight: 600; }
+.dd-item-sub { font-size: 10px; color: var(--muted); font-family: monospace; margin-top: 2px; }
+.dd-item-desc { font-size: 12px; color: var(--text2); margin-top: 3px; font-style: italic; }
+#kpi-bar { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; margin-top: 10px; margin-bottom: 2px; }
+.kpi-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 6px; text-align: center; }
+.kpi-label { font-size: 8px; color: var(--muted); font-family: monospace; letter-spacing: 1px; margin-bottom: 3px; }
+.kpi-value { font-size: 15px; font-weight: 700; color: var(--text); }
+#searchBox { width: 100%; margin-top: 8px; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-family: 'Crimson Pro', serif; font-size: 13px; outline: none; transition: border-color 0.3s; }
+#searchBox:focus { border-color: var(--active); }
+#searchBox::placeholder { color: var(--muted); font-style: italic; }
+#toolbar { display: flex; gap: 8px; margin-top: 8px; margin-bottom: 0; padding-bottom: 10px; }
+.tool-btn { padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text2); font-size: 11px; font-family: monospace; cursor: pointer; letter-spacing: 0.5px; transition: all 0.2s; white-space: nowrap; }
+.tool-btn:active { opacity: 0.7; }
+.tool-btn.primary { background: var(--active); border-color: var(--active); color: white; }
+#content { padding: 16px 14px 20px; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.phase-bar { display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+.phase-bar::-webkit-scrollbar { display: none; }
+.phase-chip { padding: 5px 13px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; border: 1px solid var(--border); color: var(--text2); background: var(--surface); font-family: monospace; letter-spacing: 0.5px; }
+.card { background: var(--surface); border-radius: 12px; padding: 18px; margin-bottom: 14px; border: 1px solid var(--border); position: relative; overflow: hidden; }
+.card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--active), transparent); }
+.card p { line-height: 1.85; font-size: 14px; color: var(--text2); }
+.card-label { font-size: 9px; color: var(--muted); letter-spacing: 4px; font-family: monospace; margin-bottom: 12px; text-transform: uppercase; }
+.section-heading { font-size: 12px; color: var(--active); font-family: monospace; letter-spacing: 2px; margin: 16px 0 8px; padding-left: 10px; border-left: 3px solid var(--active); }
+.cause-item { display: flex; gap: 12px; padding: 12px 14px; background: var(--surface2); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--active); transition: border-color 0.3s; align-items: flex-start; }
+.cause-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+.cause-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.cause-desc { font-size: 12.5px; color: var(--text2); line-height: 1.6; }
+.cause-detail { font-size: 11.5px; color: var(--muted); margin-top: 4px; font-style: italic; }
+.brain-item { background: var(--surface2); border-radius: 10px; padding: 14px; margin-bottom: 10px; border: 1px solid var(--border); position: relative; }
+.brain-item::after { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 4px; background: var(--active); border-radius: 10px 0 0 10px; }
+.brain-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.brain-icon { font-size: 22px; }
+.brain-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.brain-role { display: inline-block; font-size: 10px; font-family: monospace; padding: 2px 8px; border-radius: 20px; margin-left: 6px; color: white; }
+.brain-desc { font-size: 13px; color: var(--text2); line-height: 1.7; margin-bottom: 8px; }
+.brain-finding { font-size: 12px; color: var(--muted); line-height: 1.6; padding: 8px 10px; background: rgba(255,255,255,0.03); border-radius: 6px; border-left: 2px solid var(--border); }
+.brain-finding strong { color: var(--light); }
+.neuro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.neuro-item { background: var(--surface2); border-radius: 8px; padding: 12px; border: 1px solid var(--border); text-align: center; }
+.neuro-molecule { font-size: 22px; margin-bottom: 4px; }
+.neuro-name { font-size: 12px; font-weight: 600; color: var(--text); }
+.neuro-role { font-size: 11px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+.neuro-alteration { font-size: 10px; font-family: monospace; padding: 3px 8px; border-radius: 20px; margin-top: 6px; display: inline-block; font-weight: bold; }
+.compare-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+.compare-table th { padding: 10px 12px; font-size: 12px; font-family: monospace; letter-spacing: 1px; text-align: left; border-bottom: 2px solid var(--border); }
+.compare-table td { padding: 10px 12px; font-size: 13px; color: var(--text2); border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
+.compare-table tr:last-child td { border-bottom: none; }
+.compare-table .row-label { font-size: 11px; font-family: monospace; color: var(--muted); font-weight: bold; white-space: nowrap; }
+.treat-card { background: var(--surface); border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--border); position: relative; overflow: hidden; }
+.treat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--active); }
+.treat-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.treat-category { font-size: 9px; font-family: monospace; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+.treat-name { font-size: 16px; font-weight: 600; color: var(--text); }
+.evidence-pill { padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; color: white; white-space: nowrap; flex-shrink: 0; }
+.treat-body { display: flex; gap: 10px; align-items: flex-start; }
+.treat-emoji { font-size: 22px; flex-shrink: 0; }
+.treat-mech { font-size: 13px; color: var(--text2); line-height: 1.7; }
+.treat-notes { margin-top: 10px; padding: 10px 12px; background: rgba(46,204,113,0.1); border-radius: 8px; border-left: 3px solid var(--active); font-size: 12px; color: var(--light); line-height: 1.6; }
+.treat-warning { margin-top: 8px; padding: 8px 12px; background: rgba(231,76,60,0.1); border-radius: 6px; border-left: 3px solid #E74C3C; font-size: 12px; color: #E74C3C; line-height: 1.5; }
+.sym-section { margin-bottom: 14px; }
+.sym-section-title { font-size: 11px; font-family: monospace; letter-spacing: 2px; padding: 6px 12px; border-radius: 6px; margin-bottom: 8px; font-weight: bold; }
+.sym-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; background: var(--surface2); border-radius: 8px; margin-bottom: 6px; border-left: 3px solid var(--active); }
+.sym-bullet { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; background: var(--active); }
+.sym-text { font-size: 13.5px; color: var(--text2); line-height: 1.5; }
+.criteria-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+.criteria-item:last-child { border-bottom: none; }
+.criteria-num { font-size: 11px; font-family: monospace; color: var(--active); flex-shrink: 0; padding-top: 2px; font-weight: bold; }
+.criteria-text { font-size: 13px; color: var(--text2); line-height: 1.5; }
+.footer-bar { background: var(--surface); border-radius: 8px; padding: 12px 14px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px; border: 1px solid var(--border); }
+.footer-bar span { font-size: 9px; color: var(--muted); font-family: monospace; }
+#studyCard { display: none; }
+#studyCard.active { display: block; }
+.study-question { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.6; margin-bottom: 16px; }
+.study-reveal { padding: 10px 14px; border-radius: 8px; background: var(--surface2); border: 1px dashed var(--border); font-size: 13px; color: var(--text2); line-height: 1.7; margin-bottom: 12px; }
+.study-nav { display: flex; gap: 8px; justify-content: space-between; }
+.study-nav button { flex: 1; padding: 9px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text2); font-size: 12px; font-family: monospace; cursor: pointer; }
+.study-nav .next-btn { background: var(--active); border-color: var(--active); color: white; }
+.study-counter { font-size: 10px; font-family: monospace; color: var(--muted); text-align: center; margin-bottom: 10px; }
+.no-results { text-align: center; padding: 30px 20px; color: var(--muted); font-style: italic; font-size: 14px; }
+#bottom-nav { position: relative; width: 100%; background: #0A0A18; border-top: 3px solid var(--active); display: flex; z-index: 100; flex-shrink: 0; }
+.nav-btn { flex: 1; padding: 10px 4px 13px; border: none; background: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; border-top: 3px solid transparent; margin-top: -3px; }
+.nav-btn.active { border-top-color: var(--active); }
+.nav-icon { font-size: 18px; }
+.nav-label { font-size: 8px; font-family: monospace; letter-spacing: 1px; color: var(--muted); font-weight: bold; }
+.nav-btn.active .nav-label { color: var(--text); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+@media print {
+  #bottom-nav, #toolbar, #searchBox, #kpi-bar { display: none !important; }
+  body { max-width: 100%; background: white; color: black; }
+  .tab-panel { display: block !important; }
+  .card, .brain-item, .treat-card, .sym-item, .cause-item { break-inside: avoid; border: 1px solid #ccc; }
+}
+
+@media (max-width: 520px) {
+  body { max-width: 100%; }
+  #header { padding: 12px 12px 0; }
+  .header-eyebrow { font-size: 7px; letter-spacing: 3px; }
+  .header-title { font-size: 15px; }
+  .header-badge { font-size: 9px; padding: 2px 6px; }
+  #selector-btn { padding: 9px 12px; border-radius: 8px; }
+  .sel-icon { font-size: 20px; }
+  .sel-name { font-size: 13px; }
+  .sel-sub { font-size: 9px; }
+  #kpi-bar { grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 8px; }
+  .kpi-card { padding: 6px 4px; }
+  .kpi-label { font-size: 7px; letter-spacing: 0.5px; }
+  .kpi-value { font-size: 13px; }
+  #searchBox { font-size: 14px; padding: 10px 12px; margin-top: 6px; }
+  #toolbar { gap: 6px; margin-top: 6px; padding-bottom: 8px; flex-wrap: wrap; }
+  .tool-btn { padding: 8px 12px; font-size: 11px; flex: 1; min-width: 0; text-align: center; }
+  #dropdown { max-width: 100%; }
+  .dd-item { padding: 12px 14px; gap: 10px; }
+  #content { padding: 12px 10px 16px; }
+  .phase-chip { padding: 4px 10px; font-size: 10px; }
+  .card { padding: 14px; margin-bottom: 10px; }
+  .card p { font-size: 13px; line-height: 1.7; }
+  .card-label { font-size: 8px; letter-spacing: 3px; }
+  .cause-item { padding: 10px 12px; margin-bottom: 6px; }
+  .cause-icon { font-size: 18px; }
+  .cause-title { font-size: 12px; }
+  .cause-desc { font-size: 12px; }
+  .cause-detail { font-size: 11px; }
+  .brain-item { padding: 12px; margin-bottom: 8px; }
+  .brain-icon { font-size: 18px; }
+  .brain-name { font-size: 13px; }
+  .brain-role { font-size: 9px; padding: 2px 6px; }
+  .brain-desc { font-size: 12px; line-height: 1.6; }
+  .brain-finding { font-size: 11px; line-height: 1.5; padding: 6px 8px; }
+  .compare-table th { padding: 8px 6px; font-size: 10px; }
+  .compare-table td { padding: 8px 6px; font-size: 11px; }
+  .compare-table .row-label { font-size: 9px; }
+  .sym-section-title { font-size: 10px; padding: 5px 10px; }
+  .sym-item { padding: 8px 10px; margin-bottom: 5px; gap: 8px; }
+  .sym-text { font-size: 12.5px; }
+  .treat-card { padding: 14px; margin-bottom: 10px; }
+  .treat-category { font-size: 8px; letter-spacing: 2px; }
+  .treat-name { font-size: 14px; }
+  .evidence-pill { padding: 3px 10px; font-size: 9px; }
+  .treat-emoji { font-size: 18px; }
+  .treat-mech { font-size: 12px; line-height: 1.6; }
+  .treat-notes { padding: 8px 10px; font-size: 11px; }
+  .treat-warning { padding: 6px 10px; font-size: 11px; }
+  .study-question { font-size: 14px; }
+  .study-reveal { font-size: 12px; }
+  .study-nav button { padding: 10px; font-size: 12px; min-height: 44px; }
+  .footer-bar span { font-size: 8px; }
+  .nav-btn { padding: 8px 4px 10px; min-height: 52px; }
+  .nav-icon { font-size: 20px; }
+}
+
+@media (max-width: 360px) {
+  .header-title { font-size: 14px; }
+  .sel-name { font-size: 12px; }
+  .kpi-value { font-size: 12px; }
+  .tool-btn { padding: 7px 8px; font-size: 10px; }
+  .treat-name { font-size: 13px; }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .dd-item, .nav-btn, .tool-btn, .study-nav button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  #selector-btn { min-height: 48px; }
+  .nav-btn { min-height: 52px; }
+  .tool-btn { min-height: 44px; }
+}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="header-eyebrow">NEUROPSIQUIATRÍA DEL DESARROLLO · NEUROCIENCIA SOCIAL</div>
+  <div class="header-row">
+    <div class="header-title">Espectro Autista</div>
+    <span class="header-badge">DSM-5-TR · ICD-11</span>
+  </div>
+  <button id="selector-btn" onclick="toggleDropdown()">
+    <div class="sel-left">
+      <span class="sel-icon" id="sel-icon">🧩</span>
+      <div>
+        <div class="sel-name" id="sel-name">TEA Nivel 1</div>
+        <div class="sel-sub" id="sel-sub">Necesita Apoyo · Antes "Asperger"</div>
+      </div>
+    </div>
+    <span class="sel-arrow" id="sel-arrow">▼</span>
+  </button>
+  <div id="dropdown"></div>
+  <div id="kpi-bar">
+    <div class="kpi-card"><div class="kpi-label">PREVALENCIA</div><div class="kpi-value" id="kpi-prev">1:36</div></div>
+    <div class="kpi-card"><div class="kpi-label">HERENCIA</div><div class="kpi-value" id="kpi-her">80%</div></div>
+    <div class="kpi-card"><div class="kpi-label">RATIO H:M</div><div class="kpi-value" id="kpi-ratio">3:1</div></div>
+    <div class="kpi-card"><div class="kpi-label">DX MEDIO</div><div class="kpi-value" id="kpi-dx">4–5a</div></div>
+  </div>
+  <input id="searchBox" placeholder="🔍  Buscar: amígdala, oxitocina, sensorial..." oninput="doSearch(this.value)">
+  <div id="toolbar">
+    <button class="tool-btn primary" onclick="toggleStudyMode()">📖 Modo Estudio</button>
+    <button class="tool-btn" onclick="exportPDF()">🖨 Exportar PDF</button>
+    <button class="tool-btn" onclick="clearSearch()">✕ Limpiar</button>
+  </div>
+</div>
+
+<div id="content">
+  <div class="phase-bar" id="phase-bar"></div>
+  <div id="studyCard" class="card"></div>
+  <div id="noResults" class="no-results" style="display:none">Sin resultados para "<span id="noResultsTerm"></span>"</div>
+  <div class="tab-panel active" id="tab-causas"><div id="causas-content"></div></div>
+  <div class="tab-panel" id="tab-cerebro"><div id="cerebro-content"></div></div>
+  <div class="tab-panel" id="tab-sintomas"><div id="sintomas-content"></div></div>
+  <div class="tab-panel" id="tab-tratamiento"><div id="tratamiento-content"></div></div>
+  <div class="footer-bar">
+    <span>DSM-5-TR · ICD-11 · NICE 2024 · APA Guidelines</span>
+    <span>Atlas Clínico · v2.1 · 2026</span>
+  </div>
+</div>
+
+<nav id="bottom-nav">
+  <button class="nav-btn active" id="nav-causas" onclick="switchTab('causas',this)"><span class="nav-icon">🧬</span><span class="nav-label">CAUSAS</span></button>
+  <button class="nav-btn" id="nav-cerebro" onclick="switchTab('cerebro',this)"><span class="nav-icon">🧠</span><span class="nav-label">CEREBRO</span></button>
+  <button class="nav-btn" id="nav-sintomas" onclick="switchTab('sintomas',this)"><span class="nav-icon">📊</span><span class="nav-label">SÍNTOMAS</span></button>
+  <button class="nav-btn" id="nav-tratamiento" onclick="switchTab('tratamiento',this)"><span class="nav-icon">💊</span><span class="nav-label">TRATAMIENTO</span></button>
+</nav>
+
+<script>
+const diseases=[{id:0,name:"TEA Nivel 1",abbr:"TEA-1",sub:"Necesita Apoyo · Antes 'Asperger'",icon:"🧩",color:"#2ECC71",colorGlow:"rgba(46,204,113,0.25)",colorLight:"rgba(46,204,113,0.15)",kpi:{prev:"1:36",her:"80%",ratio:"3:1",dx:"4–5a"},phases:["SOCIAL","COMUNICACIÓN","SENSORIAL","RUTINAS"],phaseColors:["#2ECC71","#3498DB","#E67E22","#9B59B6"],dsm_criteria:"Déficits persistentes en comunicación e interacción social + patrones restrictivos y repetitivos de comportamiento. Nivel 1: 'Necesita apoyo'. Sin apoyo, los déficits causan limitaciones notables. Lenguaje verbal presente.",description:"Forma más leve del espectro. Inteligencia normal o superior. Lenguaje desarrollado pero con dificultades pragmáticas (uso social del lenguaje). Capacidad de funcionar independientemente con apoyos. Frecuentemente diagnosticado tardíamente, especialmente en mujeres que desarrollan 'masking' (camuflaje social).",causas:[{icon:"🧬",title:"Arquitectura Genética Compleja (h² = 80%)",desc:"El TEA es uno de los trastornos más heredables. Poligénico con >1000 genes de riesgo identificados. Concordancia en gemelos monocigóticos del 70–90%. Variantes comunes (SNPs) explican ~50% de la heredabilidad.",detail:"Genes principales: SHANK3 (sinapsis excitatorias), NRXN1/NLGN (adhesión sináptica), CHD8 (remodelación cromatina), SCN2A (canal de sodio), PTEN (crecimiento celular). GWAS 2023: 255 loci de riesgo."},{icon:"🔬",title:"Variantes De Novo y CNVs",desc:"Variantes de novo (no heredadas) explican 10–30% de los casos. Copy Number Variants (duplicaciones/deleciones) en regiones como 16p11.2, 15q11-13, 22q11.2 confieren alto riesgo.",detail:"Las variantes de novo son más frecuentes en TEA con discapacidad intelectual. El TEA Nivel 1 tiene mayor carga de variantes comunes poligénicas que de variantes raras de alto impacto."},{icon:"🧠",title:"Alteración de la Conectividad Sináptica",desc:"Desequilibrio excitación/inhibición (E/I) a nivel sináptico. Exceso de sinapsis por déficit en poda sináptica durante el desarrollo. Mayor ratio glutamato/GABA en corteza frontal.",detail:"La poda sináptica (eliminación de sinapsis redundantes) está reducida en TEA. El cerebro autista tiene más sinapsis pero menos eficientes. mTOR pathway hiperactivo contribuye."},{icon:"🌍",title:"Factores Prenatales y Perinatales",desc:"Edad paterna avanzada (>40 años: OR 1.5–2.0), infecciones maternas, diabetes gestacional, exposición a valproato (OR 3–5), déficit severo de folato, estrés prenatal extremo.",detail:"Valproato en primer trimestre: riesgo de TEA del 4.4% vs 1.5% en población general. La suplementación con ácido fólico periconcepcional reduce riesgo en ~40%."},{icon:"⚗️",title:"Neuroinflamación y Activación Microglial",desc:"Activación microglial persistente en corteza frontal y temporal. Citoquinas proinflamatorias (IL-6, IL-1β) elevadas en LCR y plasma. Anticuerpos maternos anti-cerebrales en ~12% de madres.",detail:"El modelo MAR (Maternal Autoantibody Related) TEA explica ~18% de los casos. Los anticuerpos maternos cruzan la placenta y atacan proteínas fetales cerebrales LDHA, STIP1, CRMP1."},{icon:"🕐",title:"Desarrollo Cerebral Acelerado Temprano",desc:"Crecimiento cerebral excesivo en los primeros 2–3 años: volumen cerebral 5–10% mayor que controles. Seguido de normalización o reducción en adolescencia. 'Overgrowth then undergrowth'.",detail:"Courchesne et al.: exceso de neuronas en CPF (+67%) en niños con TEA de 2–16 años. La neurogénesis excesiva prenatal genera redes con más neuronas pero peor organización."},{icon:"💊",title:"Disfunción Oxitocinérgica",desc:"La oxitocina ('hormona social') modula vinculación, reconocimiento facial, confianza y comunicación social. Niveles plasmáticos reducidos en TEA. Polimorfismos en OXTR asociados a TEA.",detail:"El receptor de oxitocina (OXTR) está hipometilado en TEA. Ensayos con oxitocina intranasal muestran mejorías modestas en cognición social pero resultados mixtos a largo plazo."},{icon:"🔄",title:"Epigenética y Ambiente",desc:"Metilación diferencial del ADN en >400 regiones en TEA. La exposición ambiental prenatal modifica la expresión génica sin cambiar la secuencia. El epigenoma es el puente gen-ambiente.",detail:"Biomarcadores epigenéticos en sangre de cordón umbilical pueden predecir TEA con 80% de sensibilidad (investigación). Genes improntados (UBLR1, UBE3A) tienen rol especial."}],regiones:[{icon:"🌀",name:"Amígdala",role:"COGNICIÓN SOCIAL",roleColor:"#2ECC71",desc:"Procesa emociones en rostros, detecta amenazas y regula respuestas sociales. En TEA muestra trayectoria de desarrollo anómala: agrandamiento temprano (2–4 años) seguido de volumen normal o reducido.",finding:"<strong>Hallazgos:</strong> Hiperactivación ante contacto visual directo. Hipoactivación ante expresiones emocionales sutiles. Habituación más lenta ante estímulos sociales novedosos."},{icon:"🪞",name:"Sistema de Neuronas Espejo",role:"IMITACIÓN SOCIAL",roleColor:"#3498DB",desc:"Red frontoparietal (giro frontal inferior + lóbulo parietal inferior) que se activa al observar Y al ejecutar acciones. Fundamental para imitación, empatía y comprensión de intenciones ajenas.",finding:"<strong>Hallazgos:</strong> Hipoactivación del giro frontal inferior durante observación de acciones. Debate activo: ¿sistema deficiente o estrategia de procesamiento diferente? Mu supression reducida en EEG."},{icon:"🔵",name:"Surco Temporal Superior (STS)",role:"PERCEPCIÓN SOCIAL",roleColor:"#E67E22",desc:"Procesa movimiento biológico, dirección de la mirada, expresiones faciales dinámicas y prosodia vocal. Región clave para la 'lectura' del comportamiento social ajeno.",finding:"<strong>Hallazgos:</strong> Hipoactivación del STS posterior derecho durante percepción de movimiento biológico. Menor selectividad para voz humana vs ruidos no sociales. Conectividad reducida STS↔amígdala."},{icon:"🎛️",name:"Corteza Prefrontal Medial (mPFC)",role:"MENTALIZACIÓN",roleColor:"#9B59B6",desc:"Sustrato neural de la Teoría de la Mente (ToM): atribuir estados mentales, creencias e intenciones a otros. Fundamental para predecir comportamiento ajeno. Hipoactiva en TEA durante tareas de mentalización.",finding:"<strong>Hallazgos:</strong> Menor activación en tareas de falsa creencia. Conectividad reducida mPFC↔STS↔unión temporoparietal. Adolescentes con TEA muestran patrón inmaduro de activación mPFC."},{icon:"🔴",name:"Red de Modo Defecto (DMN)",role:"AUTOCONSCIENCIA SOCIAL",roleColor:"#E74C3C",desc:"Red activada en reposo que sustenta autorreflexión, pensamiento social y simulación mental de escenarios. En TEA la DMN tiene menor conectividad interna y diferente patrón de activación.",finding:"<strong>Hallazgos fMRI:</strong> Hipoconectividad dentro de la DMN, especialmente mPFC↔corteza cingulada posterior. Menor desactivación durante tareas cognitivas. Correlaciona con dificultades de cognición social."},{icon:"🌊",name:"Corteza Insular",role:"INTEROCEPCIÓN",roleColor:"#2980B9",desc:"Integra señales corporales internas (latido cardíaco, hambre, dolor, temperatura) con consciencia emocional. La alexitimia (dificultad para identificar emociones propias) en TEA se asocia con disfunción insular.",finding:"<strong>Hallazgos:</strong> Menor conectividad ínsula anterior↔CCA. Procesamiento interoceptivo atípico: hipo o hipersensibilidad a señales corporales. 50% de TEA presenta alexitimia."},{icon:"⚡",name:"Cerebelo",role:"PREDICCIÓN Y COORDINACIÓN",roleColor:"#16A085",desc:"Más allá de la coordinación motora, el cerebelo predice secuencias sensoriales, temporiza eventos y automatiza patrones. Su disfunción contribuye a torpeza motora, déficit de predicción social y prosodia atípica.",finding:"<strong>Hallazgos:</strong> Reducción de células de Purkinje en vermis (hallazgo neuropatológico más consistente en TEA). Hipoactivación durante procesamiento temporal. Contribuye a monotonía prosódica."},{icon:"🌉",name:"Sustancia Blanca (Conectoma)",role:"HIPERLOCAL / HIPODISTANTE",roleColor:"#E67E22",desc:"Patrón de conectividad 'local over long-range': conexiones cortas excesivas pero conexiones largas (frontales↔posteriores) reducidas. El cerebro autista procesa detalles pero integra peor la imagen global.",finding:"<strong>Hallazgos DTI:</strong> ↑ FA en conexiones locales intrahemisféricas. ↓ FA en cuerpo calloso y fascículos largos. 'Teoría de la conectividad': hiperconectividad local + hipoconectividad distal."}],sintomas:{social:["Dificultad para iniciar y mantener conversaciones recíprocas","Reducción de la comunicación no verbal: expresión facial, contacto visual, gestos","Dificultad para ajustar comportamiento a diferentes contextos sociales","Problemas para hacer y mantener amistades (deseo puede estar presente)","Interpretación literal del lenguaje: dificultad con sarcasmo, ironía, doble sentido","Dificultad para 'leer' intenciones y emociones ajenas (déficit en Teoría de la Mente)","Conversaciones unidireccionales sobre temas de interés especial","Preferencia por reglas explícitas sobre normas sociales implícitas","Masking/camuflaje: esfuerzo consciente por parecer 'normal' (agotamiento)"],sensorial:["Hiper o hiposensibilidad sensorial (auditiva, táctil, visual, olfativa, gustativa)","Intolerancia a texturas específicas de ropa o alimentos","Molestia extrema con ruidos: multitudes, aspiradoras, conversaciones superpuestas","Fascinación visual: luces, patrones, movimiento de objetos","Búsqueda sensorial: girar, balancearse, presión profunda","Dificultad para filtrar estímulos irrelevantes (overload sensorial → meltdown)","Sinestesia más frecuente que en neurotípicos","Dolor procesado de forma atípica: hipo o hiperrespuesta al dolor"],restricto:["Intereses intensamente focalizados y profundos (intereses especiales/restringidos)","Adherencia rígida a rutinas: angustia significativa ante cambios inesperados","Rituales verbales o motores (preguntas repetitivas, secuencias fijas)","Estereotipias motoras: aleteo de manos (flapping), balanceo, giros (stimming)","Pensamiento en patrones: clasificar, ordenar, sistematizar","Dificultad con transiciones entre actividades","Perfeccionismo rígido: 'tiene que ser exactamente así'","Coleccionar información o objetos de forma sistemática"]},dsm_criteria_detail:[{n:"A",text:"Déficits persistentes en comunicación e interacción social en múltiples contextos: reciprocidad socioemocional, comunicación no verbal, desarrollo y mantenimiento de relaciones."},{n:"B",text:"Patrones restrictivos y repetitivos de comportamiento, intereses o actividades: ≥ 2 de: estereotipias, insistencia en monotonía, intereses restringidos, hiper/hiporreactividad sensorial."},{n:"C",text:"Síntomas presentes en el período de desarrollo temprano (pueden no manifestarse completamente hasta que las demandas sociales excedan las capacidades)."},{n:"D",text:"Causan deterioro clínicamente significativo en áreas social, laboral u otras."},{n:"E",text:"No se explican mejor por discapacidad intelectual o retraso global del desarrollo (aunque pueden coexistir)."}],treatments:[{cat:"INTERVENCIONES CONDUCTUALES — PRIMERA LÍNEA",emoji:"🧠",items:[{name:"Terapia Cognitivo-Conductual Adaptada a TEA",evidence:"A",evidColor:"#27AE60",indication:"ANSIEDAD · REGULACIÓN EMOCIONAL",mech:"TCC modificada para procesamiento concreto: uso de apoyos visuales, escalas de ansiedad, desensibilización gradual, role-playing con guiones sociales. Foco en ansiedad, que afecta al 40–60% de TEA-1.",notes:"Programa 'Facing Your Fears' y 'Exploring Feelings' (Attwood). Reducción de ansiedad en 50–70%. Adaptaciones: lenguaje literal, estructura predecible, intereses especiales como reforzadores.",warning:null},{name:"Entrenamiento en Habilidades Sociales (EHS)",evidence:"A",evidColor:"#27AE60",indication:"COMUNICACIÓN SOCIAL · AMISTADES",mech:"Grupos estructurados de 4–6 participantes. Enseñanza explícita de reglas sociales implícitas: turnos, contacto visual, lectura de emociones, reparación de malentendidos, inicio de conversación.",notes:"Programa PEERS (UCLA — Laugeson): 16 semanas. El más validado para adolescentes y adultos con TEA-1. Mejora calidad de amistades y reduce soledad. Incluye padres como coaches sociales.",warning:null}]},{cat:"TERAPIAS SENSORIALES Y DE COMUNICACIÓN",emoji:"🎯",items:[{name:"Integración Sensorial (IS — Ayres)",evidence:"B",evidColor:"#E67E22",indication:"PROCESAMIENTO SENSORIAL ATÍPICO",mech:"Terapia ocupacional basada en exposición graduada a estímulos sensoriales en entorno de juego dirigido. Busca mejorar modulación y organización de la respuesta sensorial.",notes:"Nivel B porque estudios son heterogéneos. Pero la evidencia clínica es fuerte en perfiles sensoriales severos. Dieta sensorial personalizada: qué estímulos calman vs activan.",warning:null},{name:"Terapia de Comunicación Pragmática",evidence:"A",evidColor:"#27AE60",indication:"USO SOCIAL DEL LENGUAJE",mech:"Fonoaudiología especializada en pragmática: comprensión de inferencias, sarcasmo, lenguaje figurado, prosodia emocional, turnos conversacionales, narrativa social.",notes:"En TEA-1 el lenguaje formal es adecuado pero el uso social está alterado. Social Stories™ (Carol Gray): narrativas que explican situaciones sociales de forma visual y secuencial.",warning:null}]},{cat:"FARMACOLOGÍA — COMORBILIDADES (NO hay fármaco para TEA per se)",emoji:"💊",items:[{name:"ISRS (Fluoxetina, Sertralina)",evidence:"B",evidColor:"#E67E22",indication:"ANSIEDAD · RIGIDEZ · CONDUCTAS REPETITIVAS",mech:"Inhibición selectiva de recaptación de serotonina. Reduce ansiedad, rigidez conductual y comportamientos repetitivos en TEA. La serotonina está elevada en plaquetas en 30% de TEA.",notes:"Iniciar a dosis muy bajas (1/4 de dosis habitual) y titular lentamente. Los cerebros TEA son más sensibles a ISRS. Fluoxetina 5–20mg como primera opción.",warning:"Activación paradójica frecuente en TEA: agitación, irritabilidad, insomnio. Mayor tasa de efectos adversos que en neurotípicos."},{name:"Risperidona / Aripiprazol",evidence:"A",evidColor:"#27AE60",indication:"IRRITABILIDAD · AGRESIVIDAD · AUTOLESIÓN",mech:"Risperidona: antagonista D2/5-HT2A. Aripiprazol: agonista parcial D2. Únicos fármacos aprobados FDA para irritabilidad asociada a TEA en niños ≥5 años (risperidona) y ≥6 (aripiprazol).",notes:"Reducción de irritabilidad en 50–70%. Risperidona 0.5–3mg. Aripiprazol 2–15mg. Usar la menor dosis efectiva por el menor tiempo posible.",warning:"Ganancia de peso significativa (risperidona > aripiprazol). Síndrome metabólico. Discinesia tardía. Hiperprolactinemia (risperidona). Monitoreo metabólico trimestral."}]},{cat:"INTERVENCIONES DE SOPORTE Y CALIDAD DE VIDA",emoji:"🌟",items:[{name:"Psicoeducación y Autoconocimiento",evidence:"A",evidColor:"#27AE60",indication:"POST-DIAGNÓSTICO · IDENTIDAD · AUTOESTIMA",mech:"Comprensión del propio perfil neurodivergente: fortalezas (atención al detalle, sistematización, honestidad, pasión) y desafíos. Despatologización: diferencia, no defecto.",notes:"El diagnóstico en sí es terapéutico: explica una vida de 'ser diferente'. Comunidades autistas adultas y narrativa de la neurodiversidad mejoran bienestar. Bibliografía: 'Unmasking Autism' (Price).",warning:null},{name:"Adaptaciones Ambientales",evidence:"A",evidColor:"#27AE60",indication:"LABORAL · EDUCATIVO · DOMÉSTICO",mech:"Modificar el ambiente, no forzar al individuo. Incluye: espacio sensorial seguro, instrucciones escritas, horarios visuales, anticipación de cambios, reducción de ruido, flexibilidad horaria.",notes:"Accommodations en trabajo: oficina cerrada o auriculares, comunicación por escrito, agenda clara, reuniones con orden del día. Ley de inclusión laboral aplica.",warning:null}]}]},
+{id:1,name:"TEA Nivel 2",abbr:"TEA-2",sub:"Necesita Apoyo Notable",icon:"🔷",color:"#3498DB",colorGlow:"rgba(52,152,219,0.25)",colorLight:"rgba(52,152,219,0.15)",kpi:{prev:"~1:80",her:"80%",ratio:"4:1",dx:"3–4a"},phases:["SOCIAL","COMUNICACIÓN","SENSORIAL","RUTINAS"],phaseColors:["#3498DB","#2980B9","#E67E22","#9B59B6"],dsm_criteria:"Déficits marcados en comunicación social verbal y no verbal. Deterioro social aparente incluso con apoyos. Inflexibilidad conductual, dificultad con cambios. Nivel 2: apoyo notable necesario.",description:"Dificultades sociales evidentes para observadores. El lenguaje puede estar presente pero es limitado en reciprocidad. Las conductas repetitivas y la rigidez son marcadas e interfieren con el funcionamiento en múltiples contextos. Puede funcionar en entornos estructurados con apoyo significativo.",causas:[{icon:"🧬",title:"Mayor Carga Genética de Riesgo",desc:"Combinación de variantes comunes poligénicas con mayor frecuencia de CNVs y variantes raras de efecto moderado que en TEA-1. La carga genética acumulativa es mayor.",detail:"Mayor frecuencia de microdeleciones/microduplicaciones detectables por microarray cromosómico. Rendimiento diagnóstico del microarray: ~15–20% en TEA-2."},{icon:"🔬",title:"Variantes Sinápticas de Mayor Impacto",desc:"Mutaciones en genes sinápticos (SHANK2/3, NLGN3/4, NRXN1) con mayor penetrancia. La formación y mantenimiento de sinapsis está más severamente comprometida.",detail:"SHANK3 es el gen más estudiado en TEA: regula densidad postsináptica excitante. La haploinsuficiencia de SHANK3 causa síndrome de Phelan-McDermid (TEA + DI)."},{icon:"🧠",title:"Desbalance E/I Más Pronunciado",desc:"El ratio excitación/inhibición (glutamato/GABA) está más alterado. Menor GAD67 (enzima sintetizadora de GABA) en interneuronas corticales. Resultado: corteza más excitable y menos regulada.",detail:"Espectroscopia por RM: glutamato elevado en corteza frontal y auditiva. GABA reducido en corteza sensoriomotora. Contribuye a las crisis epilépticas (20–30% en TEA-2)."},{icon:"⚡",title:"Mayor Riesgo de Epilepsia Comórbida",desc:"20–30% de TEA Nivel 2 desarrolla epilepsia, vs 5–10% en Nivel 1. Tipos más frecuentes: crisis focales complejas, ausencias atípicas, espasmos infantiles.",detail:"La epilepsia puede empeorar cognición y conducta. El EEG puede mostrar anomalías subclínicas (ESES) que afectan aprendizaje sin crisis visibles."},{icon:"🌍",title:"Factores Prenatales con Mayor Peso",desc:"Mayor asociación con eventos perinatales adversos: prematuridad, hipoxia, infecciones prenatales. La vulnerabilidad cerebral es mayor por la carga genética subyacente.",detail:"La interacción gen×ambiente es multiplicativa: el mismo factor perinatal genera mayor impacto sobre un genoma con más variantes de riesgo."},{icon:"💊",title:"Neuroinflamación Más Severa",desc:"Mayor activación microglial y astrocítica que en TEA-1. Barrera hematoencefálica con mayor permeabilidad. Citoquinas proinflamatorias persistentemente elevadas.",detail:"PET con TSPO: mayor señal microglial en corteza frontal, temporal y cerebelo en TEA-2. Correlaciona con severidad de conductas repetitivas."},{icon:"🔄",title:"Déficit en Poda Sináptica Más Marcado",desc:"La eliminación de sinapsis redundantes durante infancia y adolescencia está más comprometida. Resultado: densidad sináptica excesiva pero con menor eficiencia funcional.",detail:"Estudios postmortem: densidad de espinas dendríticas aumentada en corteza temporal y frontal. Vía mTOR hiperactiva. Rapamicina restaura poda en modelos animales."},{icon:"⚖️",title:"Discapacidad Intelectual Comórbida",desc:"30–40% de TEA Nivel 2 tiene discapacidad intelectual (CI <70). Esto modifica la presentación clínica, las estrategias de intervención y el pronóstico funcional.",detail:"El CI no es fijo: intervención temprana intensiva puede aumentar CI funcional en 15–20 puntos en los primeros 4 años de vida."}],regiones:[{icon:"🌀",name:"Amígdala",role:"HIPOCRECIMIENTO TARDÍO",roleColor:"#3498DB",desc:"En TEA-2 el patrón amigdalino es más extremo: mayor agrandamiento temprano seguido de reducción de volumen en adolescencia. Menor habituación ante estímulos sociales repetidos.",finding:"<strong>Hallazgos:</strong> Volumen amigdalino correlaciona inversamente con habilidad social. Mayor ansiedad social se asocia con hiperactivación amigdalina ante miradas directas."},{icon:"🪞",name:"Corteza Fusiforme (FFA)",role:"RECONOCIMIENTO FACIAL",roleColor:"#E67E22",desc:"El área fusiforme de rostros (FFA) muestra menor especialización para el procesamiento de caras en TEA-2. Los rostros se procesan como objetos, no como categoría especial.",finding:"<strong>Hallazgos:</strong> Menor activación FFA ante rostros pero activación normal ante objetos de interés especial. Eye-tracking: menor fijación en ojos, mayor en boca o periférica."},{icon:"🎛️",name:"Corteza Prefrontal",role:"FUNCIONES EJECUTIVAS",roleColor:"#9B59B6",desc:"CPF dorsolateral afectada para flexibilidad cognitiva y planificación. CPF ventromedial para toma de decisiones sociales. CPF orbitofrontal para inhibición de conductas repetitivas.",finding:"<strong>Hallazgos:</strong> Menor volumen de materia gris frontal. Hipoactivación durante tareas de cambio de set (set-shifting). Conectividad frontoestriatal reducida."},{icon:"🔵",name:"Ganglios Basales",role:"REPETICIÓN MOTORA",roleColor:"#E74C3C",desc:"El circuito frontoestriatal (CPF→caudado→GPi→tálamo) regula hábitos y conductas repetitivas. Su disfunción contribuye a estereotipias, rituales y resistencia al cambio.",finding:"<strong>Hallazgos:</strong> Volumen del caudado aumentado en TEA pediátrico. Hiperactivación estriatal durante ejecución de rutinas. Correlaciona con severidad de conductas repetitivas."},{icon:"🌊",name:"Corteza Sensorial Primaria",role:"PROCESAMIENTO ATÍPICO",roleColor:"#E67E22",desc:"Cortezas auditiva (temporal superior), somatosensorial (parietal) y visual (occipital) procesan estímulos con umbrales alterados: hiper o hiposensibilidad por disfunción de filtrado talámico.",finding:"<strong>Hallazgos:</strong> Mayor amplitud de potenciales evocados auditivos. Menor gating sensorial (inhibición de estímulos repetidos). Corteza auditiva hiperexcitable."},{icon:"⚡",name:"Cerebelo",role:"COORDINACIÓN SOCIAL-MOTORA",roleColor:"#16A085",desc:"Reducción de células de Purkinje en vermis y hemisferios cerebelosos. Contribuye a torpeza motora, prosodia monótona, dificultad en predicción temporal y déficit en aprendizaje motor.",finding:"<strong>Hallazgos neuropatológicos:</strong> Pérdida significativa de Purkinje: hallazgo más replicado en autopsia. Menor volumen cerebeloso total. Hipoactivación durante aprendizaje procedimental."},{icon:"🌉",name:"Cuerpo Calloso",role:"DESCONEXIÓN HEMISFÉRICA",roleColor:"#2980B9",desc:"Menor volumen y menor integridad del cuerpo calloso, especialmente en regiones anteriores (conecta CPF bilateral). Contribuye al procesamiento fragmentado y reducida integración global.",finding:"<strong>Hallazgos DTI:</strong> FA reducida en genu y cuerpo del cuerpo calloso. Menor velocidad de transferencia interhemisférica. Correlaciona con déficit en integración multisensorial."},{icon:"🌡️",name:"Tálamo",role:"FILTRO SENSORIAL",roleColor:"#9B59B6",desc:"El tálamo filtra y prioriza información sensorial antes de enviarla a corteza. En TEA-2 el filtrado es deficiente: demasiada información llega sin priorizar, generando sobrecarga sensorial.",finding:"<strong>Hallazgos:</strong> Hiperconectividad talamocortical para estímulos sensoriales. Menor conectividad tálamo↔CPF (menos control top-down). Contribuye directamente al overload sensorial."}],sintomas:{social:["Comunicación social marcadamente limitada incluso con apoyos","Respuestas reducidas o atípicas a interacciones sociales de otros","Iniciación social mínima y generalmente restringida a intereses propios","Contacto visual inconsistente o ausente en muchos contextos","Dificultad severa para comprender perspectivas ajenas","Respuestas emocionales no proporcionales al contexto","Reciprocidad conversacional muy limitada","Preferencia marcada por actividades solitarias"],sensorial:["Reacciones intensas a estímulos sensoriales: cubrir oídos, evitar texturas","Dieta extremadamente restrictiva basada en texturas/colores/olores","Autoestimulación sensorial frecuente y necesaria (stimming)","Dolor procesado atípicamente: alta tolerancia al dolor propio pero intolerancia a estímulos leves","Dificultad con entornos multisensoriales (centros comerciales, fiestas)","Búsqueda activa de presión profunda (compresión, peso)","Hipersensibilidad a cambios sutiles en el ambiente"],restricto:["Conductas repetitivas evidentes e interferentes: aleteo, giros, balanceo","Insistencia intensa en rutinas: crisis severas ante cambios mínimos","Intereses restringidos que dominan la conversación y la actividad","Resistencia marcada a nuevas actividades, alimentos, personas, lugares","Ecolalia funcional: repetición de frases oídas con función comunicativa","Organización compulsiva de objetos por color, tamaño o categoría","Angustia extrema ante interrupción de ritual o secuencia"]},dsm_criteria_detail:[{n:"A",text:"Déficits marcados en comunicación social: reciprocidad limitada, comunicación no verbal deficiente, dificultad para desarrollar relaciones. NIVEL 2: déficits aparentes incluso con apoyos."},{n:"B",text:"Patrones repetitivos manifiestos: inflexibilidad conductual, dificultad con cambios, intereses restringidos que interfieren con funcionamiento. Observable por cualquier persona."},{n:"C",text:"Síntomas desde desarrollo temprano. En TEA-2 suelen ser evidentes antes de los 3 años."},{n:"D",text:"Deterioro significativo en funcionamiento. Requiere apoyos notables para funcionar en el día a día."},{n:"E",text:"No se explica mejor por DI sola (pueden coexistir)."}],treatments:[{cat:"INTERVENCIONES CONDUCTUALES INTENSIVAS",emoji:"🧠",items:[{name:"ABA — Análisis Conductual Aplicado",evidence:"A",evidColor:"#27AE60",indication:"TEMPRANA · HABILIDADES ADAPTATIVAS · COMUNICACIÓN",mech:"Intervención intensiva (20–40h/semana) basada en principios de aprendizaje: refuerzo positivo, moldeamiento, encadenamiento, enseñanza incidental. Descompone habilidades complejas en pasos enseñables.",notes:"ABA moderno es naturalístico, basado en motivación del niño. Mejorías significativas en CI (+15pts), lenguaje y habilidades adaptativas si se inicia antes de los 4 años. Modelo Lovaas evolucionado.",warning:"ABA tradicional criticado por rigidez y supresión de stimming. ABA contemporáneo es más respetuoso: mantiene conductas no dañinas, foco en habilidades funcionales, no en 'normalizar'."},{name:"ESDM — Early Start Denver Model",evidence:"A",evidColor:"#27AE60",indication:"12–48 MESES · DESARROLLO INTEGRAL",mech:"Combina ABA con desarrollo relacional. Intervención en contexto de juego natural. Foco en: atención conjunta, imitación, comunicación, juego simbólico, interacción social.",notes:"Dawson et al. (2010): ESDM normaliza patrones de activación cerebral ante rostros. Mejora CI en 17 puntos en 2 años. Es el gold standard para intervención temprana.",warning:null}]},{cat:"COMUNICACIÓN AUMENTATIVA",emoji:"🗣️",items:[{name:"PECS — Sistema de Comunicación por Intercambio de Imágenes",evidence:"A",evidColor:"#27AE60",indication:"COMUNICACIÓN NO VERBAL O LIMITADA",mech:"6 fases secuenciales desde intercambio físico de imagen por objeto deseado hasta comentarios. NO requiere lenguaje verbal. Empodera al individuo para comunicar necesidades.",notes:"Bondy & Frost. Puede ser paso hacia lenguaje verbal o convertirse en sistema permanente. No impide desarrollo del habla (mito). Evidencia de facilitación del lenguaje oral.",warning:null},{name:"Dispositivos CAA (Comunicación Aumentativa y Alternativa)",evidence:"A",evidColor:"#27AE60",indication:"COMUNICACIÓN FUNCIONAL",mech:"Tablets/apps con símbolos o texto-a-voz (Proloquo2Go, LAMP). Permiten comunicación compleja sin lenguaje oral. Programables según nivel cognitivo.",notes:"Todo individuo tiene derecho a comunicarse independientemente de su capacidad verbal. CAA de alta tecnología permite expresión completa de necesidades, preferencias y emociones.",warning:null}]},{cat:"FARMACOLOGÍA — COMORBILIDADES",emoji:"💊",items:[{name:"Risperidona",evidence:"A",evidColor:"#27AE60",indication:"IRRITABILIDAD · AGRESIVIDAD · AUTOLESIÓN",mech:"Antagonista D2/5-HT2A. Reducción significativa de irritabilidad, agitación y autolesiones en TEA pediátrico. FDA-aprobado para esta indicación desde 2006.",notes:"RUPP trial: 69% de respuesta vs 12% placebo. Dosis 0.5–3mg/día. Usar dosis mínima eficaz.",warning:"Ganancia ponderal significativa (+2.7kg en 8 semanas). Monitoreo metabólico. Hiperprolactinemia. Sedación."},{name:"Melatonina",evidence:"A",evidColor:"#27AE60",indication:"INSOMNIO DE CONCILIACIÓN",mech:"Suplementa la melatonina deficiente en TEA. 50–80% de niños con TEA tienen trastorno del sueño. Melatonina de liberación prolongada (Slenyto) aprobada en Europa.",notes:"Dosis: 1–6mg, 30–60min antes de dormir. Mejora latencia de sueño en 30–45min. Bien tolerada a largo plazo. El sueño adecuado mejora conducta y aprendizaje diurnos.",warning:"Somnolencia matutina ocasional. Ajustar hora y dosis."}]},{cat:"INTERVENCIONES AMBIENTALES",emoji:"🌟",items:[{name:"TEACCH — Enseñanza Estructurada",evidence:"A",evidColor:"#27AE60",indication:"AMBIENTE EDUCATIVO · AUTONOMÍA",mech:"Schopler et al. (UNC). Estructura visual del ambiente: áreas delimitadas, horarios visuales, sistemas de trabajo independiente, organización predecible. Aprovecha fortaleza visual del TEA.",notes:"Implementable en aula, hogar y trabajo. Reduce ansiedad y conductas disruptivas 40–60%. La estructura visual compensa el déficit en predicción y organización temporal.",warning:null},{name:"Integración Sensorial (Dieta Sensorial)",evidence:"B",evidColor:"#E67E22",indication:"REGULACIÓN SENSORIAL DIARIA",mech:"Plan individualizado de actividades sensoriales regulatorias: presión profunda, movimiento vestibular, input propioceptivo. Objetivo: mantener nivel de alerta óptimo.",notes:"Colaboración con terapeuta ocupacional sensorial. Incluye: chaleco con peso, fidgets, breaks de movimiento, espacio de calma, auriculares con cancelación de ruido.",warning:null}]}]},
+{id:2,name:"TEA Nivel 3",abbr:"TEA-3",sub:"Necesita Apoyo Muy Notable",icon:"🔶",color:"#E74C3C",colorGlow:"rgba(231,76,60,0.25)",colorLight:"rgba(231,76,60,0.15)",kpi:{prev:"~1:200",her:"80%",ratio:"5:1",dx:"2–3a"},phases:["SOCIAL","COMUNICACIÓN","SENSORIAL","RUTINAS"],phaseColors:["#E74C3C","#C0392B","#E67E22","#9B59B6"],dsm_criteria:"Déficits severos en comunicación social verbal y no verbal. Funcionamiento muy limitado. Inflexibilidad extrema. Angustia extrema ante cambios. Nivel 3: apoyo muy notable necesario para todas las áreas.",description:"Forma más severa del espectro. Comunicación verbal mínima o ausente. Requiere apoyo constante en todas las áreas de la vida diaria. Frecuentemente asociado con discapacidad intelectual (70–80%). Las conductas repetitivas y la rigidez son severas y muy interferentes. Alta prevalencia de autolesiones y crisis conductuales.",causas:[{icon:"🧬",title:"Mayor Carga de Variantes de Alto Impacto",desc:"Mayor frecuencia de variantes de novo, CNVs grandes, y mutaciones monogénicas identificables. El rendimiento diagnóstico genético es mayor: 30–40% con causa genética identificable.",detail:"Síndromes genéticos asociados: X Frágil (FMR1), Esclerosis Tuberosa (TSC1/2), Rett (MECP2), Phelan-McDermid (SHANK3), Angelman (UBE3A). Exoma/genoma identifica causa en ~30%."},{icon:"🔬",title:"Disrupciones Severas del Neurodesarrollo",desc:"La formación de circuitos neurales está comprometida desde etapas muy tempranas del desarrollo embrionario. Migración neuronal anómala, formación de capas corticales desorganizada.",detail:"Neuropatología: parches focales de desorganización cortical en capas II-III de corteza prefrontal y temporal (Stoner et al., NEJM 2014). Los parches son prenatales."},{icon:"⚡",title:"Epilepsia Frecuente (30–40%)",desc:"La tasa de epilepsia es mucho mayor que en TEA-1/2. Picos de inicio bimodales: antes de los 5 años y en adolescencia. Puede ser refractaria al tratamiento estándar.",detail:"Espasmos infantiles (síndrome de West) en ~5% de TEA-3. Síndrome de Lennox-Gastaut en casos severos. El tratamiento de la epilepsia puede mejorar conducta y cognición."},{icon:"🧠",title:"Discapacidad Intelectual Asociada (70–80%)",desc:"La mayoría de individuos con TEA-3 tiene DI moderada a severa (CI <55). Esto refleja compromiso más difuso del neurodesarrollo, no solo de circuitos sociales.",detail:"La DI no es estática: intervención temprana intensiva puede mejorar habilidades adaptativas significativamente incluso con CI bajo. El funcionamiento adaptativo puede superar al CI."},{icon:"🔥",title:"Neuroinflamación Crónica Severa",desc:"Activación microglial más extensa y persistente que en otros niveles. Neuroinflamación contribuye a irritabilidad, autolesiones y regresión del desarrollo en algunos casos.",detail:"10–30% de TEA-3 presenta regresión autista (pérdida de habilidades adquiridas) entre 18–24 meses. La neuroinflamación puede mediar esta regresión."},{icon:"💊",title:"Disfunciones Metabólicas y Mitocondriales",desc:"Mayor frecuencia de disfunción mitocondrial, trastornos del metabolismo de purinas, déficit de folato cerebral. Estos trastornos son tratables si se identifican.",detail:"Déficit de folato cerebral: ácido folínico (leucovorin) puede mejorar comunicación y conducta en un subgrupo significativo. Anticuerpos anti-receptor folato en 75% de TEA."},{icon:"🌙",title:"Trastorno del Sueño Severo",desc:"80–90% tiene trastorno del sueño: insomnio severo, fragmentación, reducción del sueño REM. El mal sueño crónico empeora todas las demás dimensiones.",detail:"Producción de melatonina reducida por la glándula pineal. Arquitectura del sueño más desorganizada que en TEA-1/2. Melatonina de liberación prolongada es primera línea."},{icon:"⚖️",title:"Comorbilidad Médica Alta",desc:"Mayor prevalencia de problemas GI (70%), alergias alimentarias, trastornos inmunológicos, y dolor no reconocido (por dificultad comunicativa). Conductas disruptivas pueden ser dolor no expresado.",detail:"La evaluación médica exhaustiva ante cambio conductual es obligatoria: el dolor dental, otitis, reflujo, estreñimiento severo pueden manifestarse como agresividad o autolesión."}],regiones:[{icon:"🌀",name:"Amígdala",role:"RESPUESTA EMOCIONAL EXTREMA",roleColor:"#E74C3C",desc:"Patrón más severo de agrandamiento temprano y reducción posterior. La hiperreactividad amigdalina genera respuestas de alarma ante estímulos sociales y sensoriales cotidianos.",finding:"<strong>Hallazgos:</strong> Volumen amigdalino correlaciona con severidad de ansiedad y conductas de evitación social. Mayor frecuencia de crisis de angustia (meltdowns) por activación amigdalina."},{icon:"🎛️",name:"Corteza Prefrontal",role:"CONTROL EJECUTIVO SEVERAMENTE LIMITADO",roleColor:"#E67E22",desc:"Reducción de volumen prefrontal más pronunciada que en TEA-1/2. Conectividad prefrontal-estriatal severamente reducida. Explica la inflexibilidad extrema y la dificultad para inhibir conductas.",finding:"<strong>Hallazgos:</strong> Menor grosor cortical frontal. Hipoactivación severa durante inhibición. Conectividad funcional CPF↔estriado↔cerebelo reducida."},{icon:"🌊",name:"Corteza Temporal Superior",role:"PROCESAMIENTO DEL LENGUAJE",roleColor:"#3498DB",desc:"La corteza temporal superior procesa lenguaje receptivo y prosodia. En TEA-3 la lateralización del lenguaje es atípica (menor dominancia hemisférica izquierda), comprometiendo la adquisición del habla.",finding:"<strong>Hallazgos:</strong> Menor volumen de planum temporale izquierdo. Lateralización hemisférica reducida para procesamiento del habla. Activación bilateral donde debería ser izquierda."},{icon:"🔵",name:"Ganglios Basales y Circuito Hábito",role:"RITUALES SEVEROS",roleColor:"#9B59B6",desc:"Hipeactivación del circuito frontoestriatal de hábitos. Las conductas repetitivas se automatizan con tanta fuerza que su interrupción genera angustia severa y crisis conductuales.",finding:"<strong>Hallazgos:</strong> Mayor volumen del caudado. Hiperconectividad estriado↔corteza premotora. La severidad de conductas repetitivas correlaciona linealmente con actividad estriatal."},{icon:"🌡️",name:"Tálamo",role:"CAOS SENSORIAL",roleColor:"#E74C3C",desc:"El filtrado talámico está severamente comprometido. Casi toda información sensorial llega a corteza sin priorizar, generando sobrecarga sensorial constante y crisis de meltdown.",finding:"<strong>Hallazgos:</strong> Hiperconectividad talamocortical generalizada. Menor conectividad tálamo↔CPF (control descendente deficiente). El procesamiento sensorial caótico es constante, no episódico."},{icon:"⚡",name:"Cerebelo (Vermis y Hemisferios)",role:"DISFUNCIÓN MOTORA Y PREDICTIVA",roleColor:"#16A085",desc:"Pérdida severa de células de Purkinje. Contribuye a: torpeza motora gruesa y fina, estereotipias motoras, déficit en predicción temporal, dificultad para automatizar secuencias.",finding:"<strong>Hallazgos neuropatológicos:</strong> Reducción de Purkinje del 25–50% en vermis. Volumen cerebeloso reducido. Menor densidad de materia gris en hemisferios cerebelosos."},{icon:"🌉",name:"Cuerpo Calloso",role:"HEMISFERIOS DESCONECTADOS",roleColor:"#2980B9",desc:"Reducción severa del volumen y la integridad del cuerpo calloso. Menor transferencia interhemisférica de información. Contribuye al procesamiento fragmentado y la dificultad de integración.",finding:"<strong>Hallazgos:</strong> FA reducida en todas las regiones del cuerpo calloso. Menor volumen total del CC. Correlaciona con severidad de déficit social y comunicativo."},{icon:"🔴",name:"Corteza Cingulada Anterior",role:"AUTOLESIÓN",roleColor:"#E74C3C",desc:"Procesa dolor físico y emocional. Su disfunción contribuye a procesamiento atípico del dolor y puede relacionarse con conductas autolesivas (golpearse, morderse).",finding:"<strong>Hallazgos:</strong> Menor volumen y activación CCA. Procesamiento atípico del dolor: algunos individuos no manifiestan dolor severo; las autolesiones pueden ser regulación sensorial."}],sintomas:{social:["Comunicación verbal mínima, ausente o no funcional","Ausencia o mínimo uso de comunicación no verbal (gestos, expresión facial)","Aislamiento social severo: mínima o nula iniciación social","Respuesta muy limitada a interacciones de otros","Contacto visual ausente o fugaz","Ausencia de juego simbólico o imaginativo","Dificultad para reconocer personas familiares vs desconocidos (en algunos)","No responde al nombre de forma consistente"],sensorial:["Hiper o hiposensibilidad extrema en múltiples modalidades sensoriales","Autoestimulación intensa y constante (visual, auditiva, táctil, propioceptiva)","Reacciones catastróficas ante estímulos sensoriales: meltdowns, huida, agresión","Selectividad alimentaria extrema: < 5 alimentos en muchos casos","Fascinación por estímulos sensoriales específicos (luces, agua, texturas)","Respuesta al dolor dramáticamente alterada: ausencia de llanto ante lesiones","Exploración oral persistente de objetos no alimentarios (pica en algunos)","Incapacidad para funcionar en ambientes sensorialmente complejos"],restricto:["Estereotipias motoras intensas y constantes: aleteo, balanceo, giros, saltos","Rituales rígidos cuya interrupción genera crisis conductuales severas","Autolesiones: golpearse la cabeza, morderse, rascarse (20–50%)","Resistencia extrema a cualquier cambio: misma ruta, misma comida, misma ropa","Fijación intensa en objetos no funcionales (cuerdas, luces, ventiladores)","Comportamientos repetitivos que interfieren con todas las actividades","Angustia severa ante transiciones no anticipadas","Necesidad de control absoluto del ambiente inmediato"]},dsm_criteria_detail:[{n:"A",text:"Déficits severos en comunicación social: reciprocidad mínima, comunicación no verbal deficiente o ausente, relaciones muy limitadas. NIVEL 3: déficits severos que causan deterioro funcional grave."},{n:"B",text:"Patrones repetitivos intensos: inflexibilidad extrema, angustia marcada ante cambios, intereses/conductas repetitivas que interfieren en todas las áreas. Muy difícil redirigir."},{n:"C",text:"Síntomas evidentes desde desarrollo temprano, típicamente antes de los 2 años."},{n:"D",text:"Deterioro funcional muy significativo. Requiere apoyo muy notable en todas las actividades de la vida diaria."},{n:"E",text:"Puede coexistir con DI. Cuando coexisten, la comunicación social debe estar por debajo de lo esperado para el nivel de desarrollo general."}],treatments:[{cat:"INTERVENCIONES CONDUCTUALES INTENSIVAS TEMPRANAS",emoji:"🧠",items:[{name:"ABA Intensivo Temprano (EIBI)",evidence:"A",evidColor:"#27AE60",indication:"< 4 AÑOS · 25–40H/SEMANA",mech:"Intervención conductual intensiva de inicio temprano. Enseñanza de habilidades básicas: imitación, atención, comunicación, juego, autonomía. DTT (Discrete Trial Training) + NET (enseñanza naturalista).",notes:"Metaanálisis: ganancia de 15–20 puntos en CI, 10–15 puntos en habilidades adaptativas, aumento significativo de lenguaje funcional. Máximo impacto si inicia antes de los 3 años.",warning:"Requiere equipo entrenado. 25–40h semanales. Puede ser agotador para familia. Financiamiento es un desafío. ABA moderno respeta la autonomía del niño."},{name:"JASPER — Joint Attention Symbolic Play",evidence:"A",evidColor:"#27AE60",indication:"ATENCIÓN CONJUNTA · JUEGO · COMUNICACIÓN",mech:"Intervención mediada por terapeuta y padres enfocada en: atención conjunta (compartir interés), juego funcional y simbólico, y comunicación espontánea. Basado en desarrollo.",notes:"Kasari et al. (UCLA). Evidencia robusta en TEA con DI. Mejora atención conjunta y lenguaje expresivo. Implementable por padres entrenados. Complementario con ABA.",warning:null}]},{cat:"COMUNICACIÓN Y LENGUAJE",emoji:"🗣️",items:[{name:"Sistema CAA Integral",evidence:"A",evidColor:"#27AE60",indication:"COMUNICACIÓN FUNCIONAL",mech:"Combinación de PECS, dispositivos generadores de habla (SGD), signos, y apoyos visuales. Objetivo: que el individuo pueda expresar necesidades, rechazar, elegir, y comentar por cualquier medio.",notes:"La comunicación es un derecho humano fundamental. Presunción de competencia: asumir que el individuo tiene más que comunicar de lo que puede expresar. NUNCA retirar CAA.",warning:null},{name:"Comunicación Total (TC)",evidence:"B",evidColor:"#E67E22",indication:"MULTIMODAL · TODAS LAS EDADES",mech:"Uso simultáneo de todos los medios disponibles: habla, signos, imágenes, gestos naturales, dispositivos. No esperar desarrollo del habla para comunicarse.",notes:"El enfoque multimodal reduce frustración y conductas disruptivas asociadas a incapacidad comunicativa. La frustración por no poder comunicar es causa #1 de crisis conductuales.",warning:null}]},{cat:"FARMACOLOGÍA — MANEJO DE SÍNTOMAS SEVEROS",emoji:"💊",items:[{name:"Risperidona / Aripiprazol",evidence:"A",evidColor:"#27AE60",indication:"IRRITABILIDAD · AGRESIVIDAD · AUTOLESIÓN SEVERA",mech:"FDA-aprobados para irritabilidad en TEA. Reducen agresividad, autolesiones y crisis conductuales severas que impiden la intervención conductual y la seguridad.",notes:"Risperidona: reducción de 70% en irritabilidad (RUPP). Aripiprazol: perfil metabólico algo mejor. En TEA-3 frecuentemente necesarios para permitir participación en terapias.",warning:"Ganancia de peso severa. Síndrome metabólico. Monitoreo trimestral: peso, glucosa, lípidos, prolactina. Usar dosis mínima. Reevaluar periódicamente la necesidad."},{name:"Naltrexona",evidence:"B",evidColor:"#E67E22",indication:"AUTOLESIONES · HIPERACTIVIDAD",mech:"Antagonista opioide. Bloquea la liberación endógena de endorfinas que refuerza las autolesiones. Reduce autolesiones en 30–50% en subgrupo de pacientes.",notes:"Dosis: 0.5–2 mg/kg/día. Eficaz en autolesiones que producen endorfinas (golpearse). Menos útil si la autolesión es comunicativa (necesidad no expresada).",warning:"Hepatotoxicidad a dosis altas. Monitoreo hepático. Contraindicado con opioides."}]},{cat:"SOPORTE INTEGRAL",emoji:"🌟",items:[{name:"Plan de Apoyo Conductual Positivo (PBS)",evidence:"A",evidColor:"#27AE60",indication:"CONDUCTAS DESAFIANTES · PREVENCIÓN DE CRISIS",mech:"Análisis funcional de la conducta: ¿qué comunica? ¿qué obtiene? ¿qué evita? Modificar antecedentes y enseñar conducta alternativa funcionalmente equivalente.",notes:"Toda conducta tiene función. Autolesión puede ser: dolor, comunicación, regulación sensorial, o escape. Tratar la función, no solo la topografía de la conducta.",warning:null},{name:"Respiro Familiar y Apoyo a Cuidadores",evidence:"A",evidColor:"#27AE60",indication:"SALUD FAMILIAR · PREVENCIÓN BURNOUT",mech:"Programas de respiro (cuidadores sustitutos), grupos de apoyo entre pares, terapia para hermanos, planificación centrada en la persona para la vida adulta.",notes:"El burnout del cuidador es la mayor amenaza para la calidad de atención a largo plazo. Cuidar al cuidador ES parte del tratamiento. Subsidios estatales disponibles en muchos países.",warning:null}]}]}];
+
+function buildStudyCards(d) {
+  const cards = [];
+  d.causas.forEach(c => cards.push({ q: `¿Cuál es el rol de "${c.title}" en ${d.abbr}?`, a: c.desc + ' — ' + c.detail }));
+  d.regiones.forEach(r => cards.push({ q: `¿Qué le pasa a la ${r.name} en ${d.abbr}?`, a: r.desc + ' ' + r.finding.replace(/<[^>]+>/g,'') }));
+  d.sintomas.social.slice(0,3).forEach(s => cards.push({ q: `Síntoma social en ${d.abbr}:`, a: s }));
+  d.sintomas.sensorial.slice(0,3).forEach(s => cards.push({ q: `Síntoma sensorial en ${d.abbr}:`, a: s }));
+  d.treatments.forEach(g => g.items.slice(0,2).forEach(t => cards.push({ q: `¿Qué es ${t.name}?`, a: t.mech + (t.notes?' | '+t.notes:'') })));
+  d.dsm_criteria_detail.forEach(c => cards.push({ q: `Criterio DSM-5-TR ${c.n} para ${d.abbr}:`, a: c.text }));
+  return cards;
+}
+
+let current = 0, dropdownOpen = false, studyActive = false;
+let studyCards = [], studyIndex = 0, studyRevealed = false;
+
+function doSearch(query) {
+  query = query.trim().toLowerCase();
+  const noResults = document.getElementById('noResults');
+  document.querySelectorAll('.search-highlight').forEach(el => { el.style.outline = ''; el.style.boxShadow = ''; el.classList.remove('search-highlight'); });
+  if (!query) {
+    document.querySelectorAll('.brain-item,.cause-item,.sym-item,.treat-card,.card,.neuro-item,.criteria-item').forEach(el => el.style.display = '');
+    noResults.style.display = 'none';
+    document.querySelectorAll('.tab-panel').forEach(p => { p.style.display = ''; p.classList.remove('active'); });
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    const tab = currentTab || 'causas';
+    const panel = document.getElementById('tab-' + tab); if (panel) panel.classList.add('active');
+    const navBtn = document.getElementById('nav-' + tab); if (navBtn) navBtn.classList.add('active');
+    return;
+  }
+  let found = 0;
+  document.querySelectorAll('.tab-panel').forEach(p => { p.style.display = 'block'; p.classList.add('active'); });
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.add('active'));
+  document.querySelectorAll('.brain-item,.cause-item,.sym-item,.treat-card,.card,.neuro-item,.criteria-item').forEach(el => {
+    if (el.innerText.toLowerCase().includes(query)) { el.style.display = ''; el.classList.add('search-highlight'); el.style.outline = '2px solid var(--active)'; el.style.boxShadow = '0 0 12px var(--active-glow)'; found++; }
+    else el.style.display = 'none';
+  });
+  noResults.style.display = found === 0 ? 'block' : 'none';
+  if (found === 0) document.getElementById('noResultsTerm').textContent = query;
+  if (found > 0) { const first = document.querySelector('.search-highlight'); if (first) setTimeout(() => first.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150); }
+}
+
+function clearSearch() {
+  document.getElementById('searchBox').value = '';
+  document.querySelectorAll('.search-highlight').forEach(el => { el.style.outline = ''; el.style.boxShadow = ''; el.classList.remove('search-highlight'); });
+  document.querySelectorAll('.brain-item,.cause-item,.sym-item,.treat-card,.card,.neuro-item,.criteria-item').forEach(el => el.style.display = '');
+  document.getElementById('noResults').style.display = 'none';
+  document.querySelectorAll('.tab-panel').forEach(p => { p.style.display = ''; p.classList.remove('active'); });
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const tab = currentTab || 'causas';
+  const panel = document.getElementById('tab-' + tab); if (panel) panel.classList.add('active');
+  const navBtn = document.getElementById('nav-' + tab); if (navBtn) navBtn.classList.add('active');
+  var c = document.getElementById('content'); if(c) c.scrollTop = 0;
+}
+
+function toggleStudyMode() {
+  studyActive = !studyActive;
+  const card = document.getElementById('studyCard');
+  if (studyActive) { studyCards = buildStudyCards(diseases[current]).sort(() => Math.random() - 0.5); studyIndex = 0; studyRevealed = false; card.classList.add('active'); renderStudyCard(); document.querySelector('.tool-btn.primary').textContent = '✕ Cerrar Estudio'; }
+  else { card.classList.remove('active'); document.querySelector('.tool-btn.primary').textContent = '📖 Modo Estudio'; }
+}
+
+function renderStudyCard() {
+  const card = document.getElementById('studyCard'), sc = studyCards[studyIndex];
+  card.innerHTML = `<div class="card-label">MODO ESTUDIO · FLASHCARD</div><div class="study-counter">${studyIndex + 1} / ${studyCards.length}</div><div class="study-question">${sc.q}</div>${studyRevealed ? `<div class="study-reveal">${sc.a}</div>` : `<div style="text-align:center;padding:12px 0;color:var(--muted);font-style:italic;font-size:13px;">Toca "Revelar" para ver la respuesta</div>`}<div class="study-nav"><button onclick="studyPrev()">◀ Anterior</button>${!studyRevealed ? `<button class="next-btn" onclick="studyReveal()">👁 Revelar</button>` : `<button class="next-btn" onclick="studyNext()">Siguiente ▶</button>`}</div>`;
+}
+function studyReveal() { studyRevealed = true; renderStudyCard(); }
+function studyNext() { studyIndex = (studyIndex + 1) % studyCards.length; studyRevealed = false; renderStudyCard(); }
+function studyPrev() { studyIndex = (studyIndex - 1 + studyCards.length) % studyCards.length; studyRevealed = false; renderStudyCard(); }
+
+function setTheme(d) { document.documentElement.style.setProperty('--active', d.color); document.documentElement.style.setProperty('--active-glow', d.colorGlow); }
+function toggleDropdown() { dropdownOpen = !dropdownOpen; document.getElementById('dropdown').classList.toggle('open', dropdownOpen); document.getElementById('sel-arrow').textContent = dropdownOpen ? '▲' : '▼'; }
+
+function buildDropdown() {
+  document.getElementById('dropdown').innerHTML = diseases.map((d,i) =>
+    `<div class="dd-item" onclick="selectDisease(${i})" style="border-left-color:${d.color};${i===current?'background:#1A1A35;':''}">
+      <span style="font-size:26px">${d.icon}</span>
+      <div><div class="dd-item-name">${d.name}</div><div class="dd-item-sub">${d.abbr} · ${d.kpi.prev}</div><div class="dd-item-desc">${d.sub}</div></div></div>`).join('');
+}
+
+function selectDisease(idx) {
+  current = idx; dropdownOpen = false;
+  document.getElementById('dropdown').classList.remove('open');
+  document.getElementById('sel-arrow').textContent = '▼';
+  if (studyActive) { studyActive = false; document.getElementById('studyCard').classList.remove('active'); document.querySelector('.tool-btn.primary').textContent = '📖 Modo Estudio'; }
+  clearSearch(); renderAll(); buildDropdown();
+  switchTab('causas', document.getElementById('nav-causas'));
+}
+
+function renderAll() {
+  const d = diseases[current]; setTheme(d);
+  document.getElementById('sel-icon').textContent = d.icon;
+  document.getElementById('sel-name').textContent = d.name;
+  document.getElementById('sel-sub').textContent = `${d.abbr} · ${d.sub}`;
+  document.getElementById('kpi-prev').textContent = d.kpi.prev;
+  document.getElementById('kpi-her').textContent = d.kpi.her;
+  document.getElementById('kpi-ratio').textContent = d.kpi.ratio;
+  document.getElementById('kpi-dx').textContent = d.kpi.dx;
+  document.getElementById('phase-bar').innerHTML = d.phases.map((p,i) =>
+    `<span class="phase-chip" style="background:${d.phaseColors[i]}22;color:${d.phaseColors[i]};border-color:${d.phaseColors[i]}44">${p}</span>`).join('');
+  renderCausas(d); renderCerebro(d); renderSintomas(d); renderTratamiento(d);
+}
+
+function renderCausas(d) {
+  document.getElementById('causas-content').innerHTML = `
+    <div class="card"><div class="card-label">DESCRIPCIÓN CLÍNICA · ${d.abbr}</div><p>${d.description}</p>
+    <div class="section-heading">CRITERIO DIAGNÓSTICO CLAVE (DSM-5-TR)</div>
+    <p style="font-style:italic;font-size:13px;">${d.dsm_criteria}</p></div>
+    <div class="card"><div class="card-label">ETIOLOGÍA MULTIFACTORIAL — 8 DIMENSIONES</div>
+    ${d.causas.map(c=>`<div class="cause-item" style="border-left-color:${d.color}"><span class="cause-icon">${c.icon}</span><div><div class="cause-title">${c.title}</div><div class="cause-desc">${c.desc}</div><div class="cause-detail">📌 ${c.detail}</div></div></div>`).join('')}</div>
+    <div class="card"><div class="card-label">NEUROTRANSMISORES Y NEUROMODULADORES</div>
+    <div class="neuro-grid">${[
+      {mol:"🌊",name:"Serotonina",role:"Conducta repetitiva, ansiedad",alt:"↑ plaquetaria en 30%",altColor:"#3498DB"},
+      {mol:"⚡",name:"Dopamina",role:"Estereotipias, recompensa",alt:"Disfunción estriatal",altColor:"#E74C3C"},
+      {mol:"🛡️",name:"GABA",role:"Inhibición, regulación sensorial",alt:"↓ cortical",altColor:"#27AE60"},
+      {mol:"🔋",name:"Glutamato",role:"Excitación, plasticidad",alt:"↑ ratio E/I",altColor:"#E67E22"},
+      {mol:"💗",name:"Oxitocina",role:"Vinculación, cognición social",alt:"↓ plasmática",altColor:"#9B59B6"},
+      {mol:"🏃",name:"BDNF",role:"Neurotrofismo, desarrollo",alt:"Niveles variables",altColor:"#2980B9"}
+    ].map(n=>`<div class="neuro-item"><div class="neuro-molecule">${n.mol}</div><div class="neuro-name">${n.name}</div><div class="neuro-role">${n.role}</div><span class="neuro-alteration" style="background:${n.altColor}22;color:${n.altColor}">${n.alt}</span></div>`).join('')}</div></div>
+    <div class="card"><div class="card-label">CRITERIOS DSM-5-TR — DETALLE</div>
+    ${d.dsm_criteria_detail.map(c=>`<div class="criteria-item"><span class="criteria-num">${c.n}</span><span class="criteria-text">${c.text}</span></div>`).join('')}</div>`;
+}
+
+function renderCerebro(d) {
+  document.getElementById('cerebro-content').innerHTML = `
+    <div class="card"><div class="card-label">NEUROANATOMÍA FUNCIONAL — 8 REGIONES</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Hallazgos de neuroimagen estructural y funcional en ${d.abbr}</p></div>
+    ${d.regiones.map(r=>`<div class="brain-item"><div class="brain-header"><span class="brain-icon">${r.icon}</span><div><span class="brain-name">${r.name}</span><span class="brain-role" style="background:${r.roleColor}22;color:${r.roleColor}">${r.role}</span></div></div><div class="brain-desc">${r.desc}</div><div class="brain-finding">${r.finding}</div></div>`).join('')}
+    <div class="card"><div class="card-label">COMPARATIVA NIVELES TEA</div>
+    <div style="overflow-x:auto;"><table class="compare-table">
+      <thead><tr><th class="row-label">DIMENSIÓN</th><th style="color:#2ECC71">Nivel 1</th><th style="color:#3498DB">Nivel 2</th><th style="color:#E74C3C">Nivel 3</th></tr></thead>
+      <tbody>${[
+        ["Lenguaje","Fluido, déficit pragmático","Limitado, poco recíproco","Mínimo o ausente"],
+        ["CI","Normal o superior","Variable, 30–40% DI","70–80% DI"],
+        ["Epilepsia","5–10%","20–30%","30–40%"],
+        ["Autonomía","Independiente con apoyo","Semi-dependiente","Dependiente"],
+        ["Diagnóstico","Tardío (a veces adulto)","3–4 años","2–3 años"],
+        ["Conectividad","Hiperlocal/hipodistante","Reducida global","Severamente reducida"]
+      ].map(r=>`<tr><td class="row-label">${r[0]}</td><td style="color:#2ECC71;font-weight:600">${r[1]}</td><td style="color:#3498DB;font-weight:600">${r[2]}</td><td style="color:#E74C3C;font-weight:600">${r[3]}</td></tr>`).join('')}
+      </tbody></table></div></div>`;
+}
+
+function renderSintomas(d) {
+  const s = d.sintomas;
+  const sections = [
+    {title:"COMUNICACIÓN E INTERACCIÓN SOCIAL",color:current===0?"#2ECC71":current===1?"#3498DB":"#E74C3C",bg:current===0?"rgba(46,204,113,0.1)":current===1?"rgba(52,152,219,0.1)":"rgba(231,76,60,0.1)",items:s.social},
+    {title:"PROCESAMIENTO SENSORIAL",color:"#E67E22",bg:"rgba(230,126,34,0.1)",items:s.sensorial},
+    {title:"PATRONES RESTRICTIVOS Y REPETITIVOS",color:"#9B59B6",bg:"rgba(155,89,182,0.1)",items:s.restricto}
+  ];
+  document.getElementById('sintomas-content').innerHTML = `
+    <div class="card"><div class="card-label">PERFIL CLÍNICO</div><div style="overflow-x:auto;">
+    <table class="compare-table"><tbody>
+    ${current===0
+      ? `<tr><td class="row-label">Nivel de soporte</td><td>Nivel 1: Necesita apoyo</td></tr><tr><td class="row-label">Lenguaje</td><td>Fluido, déficit pragmático</td></tr><tr><td class="row-label">Inteligencia</td><td>Normal o superior (CI ≥70)</td></tr><tr><td class="row-label">Masking</td><td>Frecuente, especialmente en mujeres</td></tr><tr><td class="row-label">Diagnóstico</td><td>Frecuentemente tardío (adolescencia/adulto)</td></tr>`
+      : current===1
+      ? `<tr><td class="row-label">Nivel de soporte</td><td>Nivel 2: Necesita apoyo notable</td></tr><tr><td class="row-label">Lenguaje</td><td>Presente pero limitado en reciprocidad</td></tr><tr><td class="row-label">Inteligencia</td><td>Variable: 30–40% con DI</td></tr><tr><td class="row-label">Autonomía</td><td>Semi-dependiente, necesita estructura</td></tr><tr><td class="row-label">Diagnóstico</td><td>3–4 años típicamente</td></tr>`
+      : `<tr><td class="row-label">Nivel de soporte</td><td>Nivel 3: Necesita apoyo muy notable</td></tr><tr><td class="row-label">Lenguaje</td><td>Mínimo, ausente o no funcional</td></tr><tr><td class="row-label">Inteligencia</td><td>70–80% con DI moderada-severa</td></tr><tr><td class="row-label">Autonomía</td><td>Dependiente en actividades diarias</td></tr><tr><td class="row-label">Diagnóstico</td><td>2–3 años (temprano)</td></tr>`}
+    </tbody></table></div></div>
+    ${sections.map(sec=>`<div class="sym-section"><div class="sym-section-title" style="background:${sec.bg};color:${sec.color}">${sec.title}</div>${sec.items.map(item=>`<div class="sym-item" style="border-left-color:${sec.color}"><div class="sym-bullet" style="background:${sec.color}"></div><span class="sym-text">${item}</span></div>`).join('')}</div>`).join('')}
+    <div class="card"><div class="card-label">FORTALEZAS NEURODIVERGENTES</div>
+    ${["Atención al detalle: percepción de patrones que otros no ven","Memoria excepcional para áreas de interés","Pensamiento sistemático y lógico","Honestidad y comunicación directa","Pasión profunda por intereses especiales","Lealtad y consistencia en relaciones","Perspectiva única que aporta innovación","Persistencia y dedicación ante desafíos"].map(item=>`<div class="sym-item" style="border-left-color:${d.color}"><div class="sym-bullet" style="background:${d.color}"></div><span class="sym-text">${item}</span></div>`).join('')}</div>`;
+}
+
+function renderTratamiento(d) {
+  document.getElementById('tratamiento-content').innerHTML = `
+    <div class="card"><div class="card-label">PRINCIPIOS GENERALES</div>
+    ${["El TEA no se 'cura': es una condición del neurodesarrollo de por vida. El objetivo es calidad de vida y autonomía máxima","Intervención temprana es el predictor más fuerte de pronóstico favorable","No existe fármaco para los síntomas nucleares del TEA — la farmacología trata comorbilidades","Presunción de competencia: asumir capacidad hasta demostrar lo contrario","Paradigma de neurodiversidad: diferencia ≠ defecto. Apoyar, no normalizar forzadamente"].map(item=>`
+    <div class="cause-item" style="border-left-color:${d.color};padding:10px 12px;"><span style="font-size:16px;flex-shrink:0;">✓</span><span style="font-size:13px;color:var(--text2);line-height:1.5;">${item}</span></div>`).join('')}</div>
+    ${d.treatments.map(group=>`<div style="margin:18px 0 6px;font-size:9px;font-family:monospace;letter-spacing:3px;color:var(--muted);">${group.emoji} ${group.cat}</div>
+    ${group.items.map(t=>`<div class="treat-card"><div class="treat-card-header"><div><div class="treat-category">${t.indication}</div><div class="treat-name">${t.name}</div></div><span class="evidence-pill" style="background:${t.evidColor}">${t.evidence}</span></div><div class="treat-body"><span class="treat-emoji">${group.emoji}</span><div><div class="treat-mech">${t.mech}</div></div></div><div class="treat-notes" style="border-left-color:${d.color};background:${d.colorLight}">📋 ${t.notes}</div>${t.warning?`<div class="treat-warning">⚠️ ${t.warning}</div>`:''}</div>`).join('')}`).join('')}
+    <div class="card"><div class="card-label">COMORBILIDADES FRECUENTES</div>
+    ${["Ansiedad (40–60%): TCC adaptada + ISRS a dosis bajas si necesario","TDAH (30–50%): diagnóstico dual permitido desde DSM-5. Metilfenidato eficaz pero menor tolerancia","Depresión (20–40%): frecuente en TEA-1 por aislamiento y masking. Psicoterapia adaptada","Epilepsia (5–40% según nivel): evaluación EEG obligatoria ante regresión. Levetiracetam, lamotrigina preferidos","Trastornos GI (50–70%): estreñimiento crónico, selectividad alimentaria, dolor abdominal. Evaluación GI completa","Trastorno del sueño (50–80%): melatonina primera línea. Higiene del sueño estricta","Hipersensibilidad sensorial: terapia ocupacional + adaptaciones ambientales"].map(item=>`
+    <div class="cause-item" style="border-left-color:${d.color};padding:8px 12px;margin-bottom:6px;"><span style="font-size:14px;flex-shrink:0;">•</span><span style="font-size:12.5px;color:var(--text2);line-height:1.5;">${item}</span></div>`).join('')}</div>`;
+}
+
+let currentTab = 'causas';
+function switchTab(tabId, btn) {
+  currentTab = tabId;
+  try { localStorage.setItem('lastTab', tabId); } catch(e) {}
+  document.querySelectorAll('.tab-panel').forEach(p => { p.classList.remove('active'); p.style.display = ''; });
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tabId).classList.add('active');
+  if (btn) btn.classList.add('active');
+  const sb = document.getElementById('searchBox');
+  if (sb && sb.value) clearSearch();
+  var c = document.getElementById('content'); if(c) c.scrollTop = 0;
+}
+
+document.addEventListener('click', function(e) {
+  if (dropdownOpen && !document.getElementById('header').contains(e.target)) {
+    dropdownOpen = false; document.getElementById('dropdown').classList.remove('open'); document.getElementById('sel-arrow').textContent = '▼';
+  }
+});
+
+function exportPDF() {
+  document.querySelectorAll('.tab-panel').forEach(function(p) { p.style.display = 'block'; });
+  setTimeout(function() { window.print(); setTimeout(function() {
+    document.querySelectorAll('.tab-panel').forEach(function(p) { p.style.display = ''; });
+    var tab = currentTab || 'causas'; var panel = document.getElementById('tab-' + tab); if (panel) panel.classList.add('active');
+    var navBtn = document.getElementById('nav-' + tab); if (navBtn) navBtn.classList.add('active');
+  }, 1200); }, 300);
+}
+
+buildDropdown(); renderAll();
+let lastTab = 'causas';
+try { lastTab = localStorage.getItem('lastTab') || 'causas'; } catch(e) {}
+if (document.getElementById('tab-' + lastTab)) switchTab(lastTab, document.getElementById('nav-' + lastTab));
+</script>
+
+</body>
+</html>
