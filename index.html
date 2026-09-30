@@ -322,12 +322,15 @@ function buildStudyCards(d) {
 let current = 0, dropdownOpen = false, studyActive = false;
 let studyCards = [], studyIndex = 0, studyRevealed = false;
 
+// Elementos que participan en la búsqueda: un solo lugar para añadir clases nuevas.
+const SEARCHABLE = '.brain-item,.cause-item,.sym-item,.treat-card,.card,.neuro-item,.criteria-item';
+
 function doSearch(query) {
   query = query.trim().toLowerCase();
   const noResults = document.getElementById('noResults');
   document.querySelectorAll('.search-highlight').forEach(el => { el.style.outline = ''; el.style.boxShadow = ''; el.classList.remove('search-highlight'); });
   if (!query) {
-    document.querySelectorAll('.brain-item,.cause-item,.sym-item,.treat-card,.card,.neuro-item,.criteria-item').forEach(el => el.style.display = '');
+    document.querySelectorAll(SEARCHABLE).forEach(el => el.style.display = '');
     noResults.style.display = 'none';
     document.querySelectorAll('.tab-panel').forEach(p => { p.style.display = ''; p.classList.remove('active'); });
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -339,7 +342,7 @@ function doSearch(query) {
   let found = 0;
   document.querySelectorAll('.tab-panel').forEach(p => { p.style.display = 'block'; p.classList.add('active'); });
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.add('active'));
-  document.querySelectorAll('.brain-item,.cause-item,.sym-item,.treat-card,.card,.neuro-item,.criteria-item').forEach(el => {
+  document.querySelectorAll(SEARCHABLE).forEach(el => {
     if (el.innerText.toLowerCase().includes(query)) { el.style.display = ''; el.classList.add('search-highlight'); el.style.outline = '2px solid var(--active)'; el.style.boxShadow = '0 0 12px var(--active-glow)'; found++; }
     else el.style.display = 'none';
   });
@@ -351,7 +354,7 @@ function doSearch(query) {
 function clearSearch() {
   document.getElementById('searchBox').value = '';
   document.querySelectorAll('.search-highlight').forEach(el => { el.style.outline = ''; el.style.boxShadow = ''; el.classList.remove('search-highlight'); });
-  document.querySelectorAll('.brain-item,.cause-item,.sym-item,.treat-card,.card,.neuro-item,.criteria-item').forEach(el => el.style.display = '');
+  document.querySelectorAll(SEARCHABLE).forEach(el => el.style.display = '');
   document.getElementById('noResults').style.display = 'none';
   document.querySelectorAll('.tab-panel').forEach(p => { p.style.display = ''; p.classList.remove('active'); });
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -484,7 +487,7 @@ function renderTratamiento(d) {
 let currentTab = 'causas';
 function switchTab(tabId, btn) {
   currentTab = tabId;
-  try { localStorage.setItem('lastTab', tabId); } catch(e) {}
+  try { localStorage.setItem(LS_KEY, tabId); } catch(e) {}
   document.querySelectorAll('.tab-panel').forEach(p => { p.classList.remove('active'); p.style.display = ''; });
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-' + tabId).classList.add('active');
@@ -510,8 +513,12 @@ function exportPDF() {
 }
 
 buildDropdown(); renderAll();
+const LS_KEY = 'tea:lastTab'; // prefijo por app: todas comparten origen en lc1733.github.io
 let lastTab = 'causas';
-try { lastTab = localStorage.getItem('lastTab') || 'causas'; } catch(e) {}
+try { lastTab = localStorage.getItem(LS_KEY) || 'causas'; } catch(e) {}
+// Salto directo a pestaña desde el hub: /?tab=sintomas
+const qtab = new URLSearchParams(location.search).get('tab');
+if (qtab && document.getElementById('tab-' + qtab)) lastTab = qtab;
 if (document.getElementById('tab-' + lastTab)) switchTab(lastTab, document.getElementById('nav-' + lastTab));
 </script>
 
